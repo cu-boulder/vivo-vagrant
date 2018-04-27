@@ -14,18 +14,57 @@ set -o verbose
 #
 # -- Setup global variables and directories
 #
+#VIVO install location
+APPDIR=/usr/local/vivo
+TEMPLATEBASE=fis-vivo-base
 #Data directory - Solr index and VIVO application files will be stored here.
-DATADIR=/usr/local/vdata
+DATADIR=${APPDIR}/${TEMPLATEBASE}/vdata
 PROVDIR=/home/vagrant/provision
 #Tomcat webapp dir
 WEBAPPDIR=/var/lib/tomcat7/webapps
+#Database
+VIVO_DATABASE=vivo17dev
 
+#Make app directory
+mkdir -p $APPDIR
 #Make data directory
-mkdir -p $DATADIR
+#PART OF TEMPLATE#mkdir -p $DATADIR
 #Make config directory
-mkdir -p $DATADIR/config
+#PART OF TEMPLATE#mkdir -p $DATADIR/config
 #Make log directory
-mkdir -p $DATADIR/logs
+#mkdir -p $DATADIR/logs
+
+createDatabase() {
+    #create VIVO mysql database
+    mysql -uroot -pvivo -e "CREATE DATABASE IF NOT EXISTS $VIVO_DATABASE DEFAULT CHARACTER SET utf8;"
+}
+
+cloneVIVOTemplate(){
+    #VIVO will be installed in APPDIR.  You might want to put this
+    #in a shared folder so that the files can be edited from the
+    #host machine.  Building VIVO via the shared file
+    #system can be very slow, at least with Windows.  See
+    #http://docs.vagrantup.com/v2/synced-folders/nfs.html
+
+    #Remove existing app directory if present.
+    rm -rf $APPDIR && mkdir -p $APPDIR
+
+    #Setup permissions and switch to app dir.
+    chown -R vagrant:tomcat7 $APPDIR
+    cd $APPDIR
+
+    #Checkout three tiered build template from Github
+    git clone https://github.com/cu-boulder/vivo-template.git ${TEMPLATEBASE}
+    git submodule init
+    git submodule update
+# Part of template    cd VIVO/
+# Part of template    git checkout maint-rel-1.9
+# Part of template    cd ../Vitro
+# Part of template    git checkout maint-rel-1.9
+# Part of template    cd ..
+    return $TRUE
+}
+
 
 removeRDFFiles(){
     #In development, you might want to remove these ontology and data files
@@ -72,12 +111,12 @@ setupTomcat(){
 }
 
 installVIVO(){
-    cd /home/vagrant/
-    rm -rf vivo
-    mkdir vivo
-    cd vivo
-    wget https://github.com/vivo-project/VIVO/releases/download/rel-1.9.2/vivo-1.9.2.tar.gz -O vivo.tar.gz
-    tar -xvf vivo.tar.gz
+#DRE    cd /home/vagrant/
+#DRE    rm -rf vivo
+#DRE    mkdir vivo
+#DRE    cd vivo
+#DRE    wget https://github.com/vivo-project/VIVO/releases/download/rel-1.9.2/vivo-1.9.2.tar.gz -O vivo.tar.gz
+#DRE    tar -xvf vivo.tar.gz
     #Copy runtime properties into data directory
     cp $PROVDIR/vivo/runtime.properties $DATADIR/.
     #Copy applicationSetup.n3 from Vitro into data directory
@@ -96,6 +135,12 @@ installVIVO(){
 
 # add vagrant to tomcat7 group
 usermod -a -G tomcat7 vagrant
+
+# create VIVO SDB database
+createDatabase
+
+#Clone the VIVO 3 tier template
+cloneVIVOTemplate
 
 # install the app
 installVIVO
