@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
     config.vm.box = "ubuntu/xenial64"
 	  v.gui = true
 	  v.cpus = 2
-	  v.memory = 2048
+	  v.memory = 4096
 	  v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']  
   end
 

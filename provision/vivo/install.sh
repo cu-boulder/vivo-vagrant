@@ -55,6 +55,7 @@ cloneVIVOTemplate(){
 
     #Checkout three tiered build template from Github
     git clone https://github.com/cu-boulder/vivo-template.git ${TEMPLATEBASE}
+    cd ${TEMPLATEBASE}
     git submodule init
     git submodule update
 # Part of template    cd VIVO/
@@ -143,7 +144,7 @@ createDatabase
 cloneVIVOTemplate
 
 # install the app
-installVIVO
+#installVIVO
 
 #Adjust tomcat permissions
 setupTomcat
